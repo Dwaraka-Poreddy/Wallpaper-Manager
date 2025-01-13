@@ -96,7 +96,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('Wallpaper Manager'),
         ),
         body: Center(
           child: isLoading
