@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:wallpaper_manager/services/wallpaper_provider.dart';
 
 class ImageListScreen extends StatefulWidget {
@@ -21,6 +22,15 @@ class _ImageListScreenState extends State<ImageListScreen> {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
+      final directory = await getApplicationDocumentsDirectory();
+      final localFile = File('${directory.path}/images/${pickedFile.name}');
+
+      if (!localFile.parent.existsSync()) {
+        localFile.parent.createSync(recursive: true);
+      }
+      if (!localFile.existsSync()) {
+        await localFile.writeAsBytes(await File(pickedFile.path).readAsBytes());
+      }
       setState(() {
         if (isPublic) {
           _publicLocalImage = File(pickedFile.path);
