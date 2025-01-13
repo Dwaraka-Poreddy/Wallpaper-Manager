@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../global.dart';
@@ -53,12 +54,13 @@ class WallpaperProvider {
       localFile.parent.createSync(recursive: true);
     }
 
-    if (localFile.existsSync()) {
-      await sharedPreferences!.setString('selectedImagePath', localFile.path);
-      return localFile.path; // Return local file path if available
-    } else {
-      await sharedPreferences!.setString('selectedImagePath', url);
-      return url; // Otherwise, return the network URL
+    if (!localFile.existsSync()) {
+      final cache = DefaultCacheManager();
+      File file = await cache.getSingleFile(url);
+      await localFile.writeAsBytes(await file.readAsBytes());
     }
+    await sharedPreferences!.setString('selectedImagePath', localFile.path);
+
+    return localFile.path;
   }
 }
