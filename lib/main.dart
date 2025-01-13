@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_wallpaper_manager/flutter_wallpaper_manager.dart';
+import 'package:wallpaper_manager/image_list_screen.dart';
 import 'package:wallpaper_manager/wallpaper_provider.dart';
+
+import 'biometric_auth_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -22,8 +25,10 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   bool isLoading = false;
   bool isInPublic = false;
+  bool isSwitchDisabled = false;
   String _platformVersion = 'Unknown';
   String __heightWidth = "Unknown";
+  final BiometricAuthService _authService = BiometricAuthService();
 
   @override
   void initState() {
@@ -94,60 +99,101 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Wallpaper Manager'),
-        ),
-        body: Center(
-          child: isLoading
-              ? const CircularProgressIndicator()
-              : SingleChildScrollView(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      CachedNetworkImage(
-                        imageUrl: WallpaperProvider.getWallpaperUrl(isInPublic),
-                        placeholder: (context, url) =>
-                            const CircularProgressIndicator(),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
+      home: Navigator(
+        onGenerateRoute: (RouteSettings settings) {
+          return MaterialPageRoute(
+            builder: (context) => Scaffold(
+              appBar: AppBar(
+                title: const Text('Wallpaper Manager'),
+              ),
+              body: Center(
+                child: isLoading
+                    ? const CircularProgressIndicator()
+                    : SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              height: 200,
+                              width: 200,
+                              child: CachedNetworkImage(
+                                imageUrl: WallpaperProvider.getWallpaperUrl(
+                                    isInPublic),
+                                placeholder: (context, url) =>
+                                    const CircularProgressIndicator(),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error),
+                              ),
+                            ),
+                            Text('Running on: $_platformVersion\n'),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            Text('$__heightWidth\n'),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            SwitchListTile(
+                              title: const Text('Public Mode'),
+                              value: isInPublic,
+                              onChanged: isSwitchDisabled
+                                  ? null
+                                  : (bool value) async {
+                                      setState(() {
+                                        isSwitchDisabled = true;
+                                      });
+                                      if (!value) {
+                                        bool isAuthenticated =
+                                            await _authService
+                                                .authenticateUser();
+                                        if (!isAuthenticated) {
+                                          setState(() {
+                                            isSwitchDisabled = false;
+                                          });
+                                          return;
+                                        }
+                                      }
+                                      setState(() {
+                                        isInPublic = value;
+                                        isSwitchDisabled = false;
+                                      });
+                                    },
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            TextButton(
+                                onPressed: () => {setWallpaper()},
+                                child: const Text("Set Wallpaper")),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            TextButton(
+                                onPressed: () async {
+                                  await WallpaperManager.clearWallpaper();
+                                },
+                                child: const Text("Clear Wallpaper")),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const ImageListScreen()),
+                                  );
+                                },
+                                child: const Text("View Image Lists")),
+                          ],
+                        ),
                       ),
-                      Text('Running on: $_platformVersion\n'),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Text('$__heightWidth\n'),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      SwitchListTile(
-                        title: const Text('Is In Public'),
-                        value: isInPublic,
-                        onChanged: (bool value) {
-                          setState(() {
-                            isInPublic = value;
-                          });
-                        },
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      TextButton(
-                          onPressed: () => {setWallpaper()},
-                          child: const Text("Set Wallpaper")),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      TextButton(
-                          onPressed: () async {
-                            await WallpaperManager.clearWallpaper();
-                          },
-                          child: const Text("Clear Wallpaper"))
-                    ],
-                  ),
-                ),
-        ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
