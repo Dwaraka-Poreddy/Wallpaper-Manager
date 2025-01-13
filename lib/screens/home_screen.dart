@@ -1,13 +1,10 @@
-import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_wallpaper_manager/flutter_wallpaper_manager.dart';
+import 'package:wallpaper_manager/screens/cached_images_list.dart';
 
 import '../services/biometric_auth_service.dart';
 import '../services/wallpaper_provider.dart';
+import '../services/wallpaper_service.dart';
+import '../widgets/wallpaper_widget.dart';
 import 'image_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -41,23 +38,11 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       isLoading = true;
     });
-    try {
-      final cache = DefaultCacheManager();
-      String url = WallpaperProvider.getWallpaperUrl(isInPublic);
-      File? file = await cache.getSingleFile(url);
-
-      int location = WallpaperManager.BOTH_SCREEN;
-
-      final bool result =
-          await WallpaperManager.setWallpaperFromFile(file.path, location);
-      print(result);
-    } on PlatformException catch (e) {
-      print("Failed to set wallpaper: $e");
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
+    bool result = await WallpaperService.setWallpaper(isInPublic);
+    print(result);
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -73,17 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
           : SingleChildScrollView(
               child: Column(
                 children: [
-                  const Text("Current Wallpaper"),
-                  SizedBox(
-                    height: 200,
-                    width: 200,
-                    child: CachedNetworkImage(
-                      imageUrl: WallpaperProvider.getWallpaperUrl(isInPublic),
-                      placeholder: (context, url) =>
-                          const CircularProgressIndicator(),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.error),
-                    ),
+                  const Text("Selected Image"),
+                  WallpaperDisplay(
+                    isInPublic: isInPublic,
                   ),
                   const SizedBox(
                     height: 10,
@@ -125,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   ElevatedButton(
                       onPressed: () async {
-                        await WallpaperManager.clearWallpaper();
+                        await WallpaperService.clearWallpaper();
                       },
                       child: const Text("Clear this Wallpaper")),
                   const SizedBox(
@@ -141,6 +118,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                     child: const Text("View Image Lists"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CachedImagesPage(),
+                        ),
+                      );
+                    },
+                    child: const Text("View Cached Images"),
                   ),
                 ],
               ),

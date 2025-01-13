@@ -1,18 +1,29 @@
+import 'dart:io';
 import 'dart:math';
+
+import 'package:path_provider/path_provider.dart';
 
 import '../global.dart';
 
 class WallpaperProvider {
   static final List<String> publicUrls = [
-    "https://images.unsplash.com/photo-1593642634367-d91a135587b5",
-    "https://images.unsplash.com/photo-1519125323398-675f0ddb6308",
-    "https://images.unsplash.com/photo-1521747116042-5a810fda9664"
+    "https://plus.unsplash.com/premium_photo-1722859221349-26353eae4744",
+    "https://images.unsplash.com/photo-1503256207526-0d5d80fa2f47",
+    "https://images.unsplash.com/photo-1530281700549-e82e7bf110d6",
+    "https://images.unsplash.com/photo-1505628346881-b72b27e84530",
+    "https://images.unsplash.com/photo-1491604612772-6853927639ef",
+    "https://images.unsplash.com/photo-1510771463146-e89e6e86560e",
+    "https://images.unsplash.com/photo-1560743641-3914f2c45636",
   ];
 
   static final List<String> privateUrls = [
-    "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0",
-    "https://images.unsplash.com/photo-1495567720989-cebdbdd97913",
-    "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0"
+    "https://plus.unsplash.com/premium_photo-1673967831980-1d377baaded2",
+    "https://images.unsplash.com/photo-1516280030429-27679b3dc9cf",
+    "https://images.unsplash.com/photo-1536590158209-e9d615d525e4",
+    "https://plus.unsplash.com/premium_photo-1666612335748-d23dcba788e1",
+    "https://images.unsplash.com/photo-1536589961747-e239b2abbec2",
+    "https://images.unsplash.com/photo-1552933529-e359b2477252",
+    "https://images.unsplash.com/photo-1548546738-8509cb246ed3",
   ];
 
   static Future<bool> isInPublic() async {
@@ -23,12 +34,25 @@ class WallpaperProvider {
     await sharedPreferences!.setBool('isInPublic', value);
   }
 
-  static String getWallpaperUrl(bool isInPublic) {
+  static Future<String> getWallpaperUrl(bool isInPublic) async {
     final random = Random();
-    if (isInPublic) {
-      return publicUrls[random.nextInt(publicUrls.length)];
+    final url = isInPublic
+        ? publicUrls[random.nextInt(publicUrls.length)]
+        : privateUrls[random.nextInt(privateUrls.length)];
+
+    // Check if file exists locally
+    final directory = await getApplicationDocumentsDirectory();
+    final fileName = Uri.parse(url).pathSegments.last;
+    final localFile = File('${directory.path}/images/$fileName');
+
+    if (!localFile.parent.existsSync()) {
+      localFile.parent.createSync(recursive: true);
+    }
+
+    if (localFile.existsSync()) {
+      return localFile.path; // Return local file path if available
     } else {
-      return privateUrls[random.nextInt(privateUrls.length)];
+      return url; // Otherwise, return the network URL
     }
   }
 }
