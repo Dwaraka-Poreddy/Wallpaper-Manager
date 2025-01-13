@@ -3,17 +3,30 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../global.dart';
 import '../services/wallpaper_provider.dart';
 
-class WallpaperDisplay extends StatelessWidget {
+class WallpaperDisplay extends StatefulWidget {
   final bool isInPublic;
-
   const WallpaperDisplay({super.key, required this.isInPublic});
 
   @override
+  State<WallpaperDisplay> createState() => _WallpaperDisplayState();
+}
+
+class _WallpaperDisplayState extends State<WallpaperDisplay> {
+  @override
   Widget build(BuildContext context) {
+    getSelectedImage() async {
+      if (sharedPreferences!.containsKey('selectedImagePath')) {
+        return sharedPreferences!.getString('selectedImagePath')!;
+      } else {
+        return await WallpaperProvider.getWallpaperUrl(widget.isInPublic);
+      }
+    }
+
     return FutureBuilder<String>(
-      future: WallpaperProvider.getWallpaperUrl(isInPublic),
+      future: getSelectedImage(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator(); // Placeholder while loading

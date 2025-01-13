@@ -5,13 +5,14 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_wallpaper_manager/flutter_wallpaper_manager.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../global.dart';
 import 'wallpaper_provider.dart';
 
 class WallpaperService {
   static Future<bool> setWallpaper(bool isInPublic) async {
     try {
       final cache = DefaultCacheManager();
-      String urlOrPath = await WallpaperProvider.getWallpaperUrl(isInPublic);
+      String urlOrPath = sharedPreferences!.getString('selectedImagePath')!;
 
       File file;
       if (urlOrPath.startsWith('http')) {
@@ -34,6 +35,8 @@ class WallpaperService {
 
       final bool result =
           await WallpaperManager.setWallpaperFromFile(file.path, location);
+      String newUrlOrPath = await WallpaperProvider.getWallpaperUrl(isInPublic);
+      await sharedPreferences!.setString('selectedImagePath', newUrlOrPath);
       return result;
     } on PlatformException catch (e) {
       print("Failed to set wallpaper: $e");

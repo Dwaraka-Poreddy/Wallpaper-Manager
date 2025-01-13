@@ -31,7 +31,11 @@ class WallpaperProvider {
   }
 
   static Future<void> setInPublic(bool value) async {
-    await sharedPreferences!.setBool('isInPublic', value);
+    await Future.wait([
+      getWallpaperUrl(value), // Fetch or prepare the updated wallpaper URL
+      sharedPreferences!
+          .setBool('isInPublic', value), // Save the value in shared preferences
+    ]);
   }
 
   static Future<String> getWallpaperUrl(bool isInPublic) async {
@@ -50,8 +54,10 @@ class WallpaperProvider {
     }
 
     if (localFile.existsSync()) {
+      await sharedPreferences!.setString('selectedImagePath', localFile.path);
       return localFile.path; // Return local file path if available
     } else {
+      await sharedPreferences!.setString('selectedImagePath', url);
       return url; // Otherwise, return the network URL
     }
   }
