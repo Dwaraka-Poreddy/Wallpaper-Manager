@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:intl/intl.dart';
+import '../global.dart';
 
 class WallpaperProvider {
   static final List<String> publicUrls = [
@@ -15,15 +15,12 @@ class WallpaperProvider {
     "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0"
   ];
 
-  static bool isInPublic() {
-    DateTime now = DateTime.now();
-    String dayOfWeek = DateFormat('EEEE').format(now);
-    int hour = now.hour;
+  static Future<bool> isInPublic() async {
+    return sharedPreferences!.getBool('isInPublic') ?? false;
+  }
 
-    return (dayOfWeek == 'Monday' ||
-            dayOfWeek == 'Tuesday' ||
-            dayOfWeek == 'Wednesday') &&
-        (hour >= 10 && hour <= 19);
+  static Future<void> setInPublic(bool value) async {
+    await sharedPreferences!.setBool('isInPublic', value);
   }
 
   static String getWallpaperUrl(bool isInPublic) {

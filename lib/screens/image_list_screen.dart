@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:wallpaper_manager/wallpaper_provider.dart';
+import 'package:wallpaper_manager/services/wallpaper_provider.dart';
 
 class ImageListScreen extends StatefulWidget {
   const ImageListScreen({super.key});
