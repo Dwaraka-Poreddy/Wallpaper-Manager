@@ -22,29 +22,6 @@ class Dialogs {
     );
   }
 
-  static Future<bool> showPrivacyDialog(BuildContext context) async {
-    return await showDialog<bool>(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('Image Privacy'),
-              content: const Text('Is this image private?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('No'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Yes'),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
-  }
-
   static Future<bool> showConfirmationDialog(
     BuildContext context,
     String title,

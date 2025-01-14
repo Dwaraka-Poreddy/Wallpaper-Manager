@@ -47,7 +47,11 @@ class _CachedImagesPageState extends State<CachedImagesPage> {
       } else {
         await File(imagePath).copy(newImagePath);
         if (mounted) {
-          final isPrivate = await Dialogs.showPrivacyDialog(context);
+          final isPrivate = await Dialogs.showConfirmationDialog(
+            context,
+            "Image Privacy",
+            "Is this image private?",
+          );
           await CacheService.addImageToCacheList(newImagePath, !isPrivate);
           await _fetchAndSetCachedImagesList();
         }
