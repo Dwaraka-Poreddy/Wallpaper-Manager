@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../services/cache_service.dart';
+import '../widgets/dialogs.dart';
 
 class CachedImagesPage extends StatefulWidget {
   const CachedImagesPage({super.key});
@@ -40,57 +41,18 @@ class _CachedImagesPageState extends State<CachedImagesPage> {
       final newImagePath = '${directory.path}/$imageHash.jpg';
 
       if (await File(newImagePath).exists()) {
-        await _showImageExistsDialog(newImagePath);
+        if (mounted) {
+          await Dialogs.showImageExistsDialog(context, newImagePath);
+        }
       } else {
         await File(imagePath).copy(newImagePath);
-        final isPrivate = await _showPrivacyDialog();
-        await CacheService.addImageToCacheList(newImagePath, !isPrivate);
-        await _fetchAndSetCachedImagesList();
+        if (mounted) {
+          final isPrivate = await Dialogs.showPrivacyDialog(context);
+          await CacheService.addImageToCacheList(newImagePath, !isPrivate);
+          await _fetchAndSetCachedImagesList();
+        }
       }
     }
-  }
-
-  Future<void> _showImageExistsDialog(String imagePath) async {
-    await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Image Already Exists'),
-          content: const Text(
-            'This image already exists in the cache. You can change its privacy settings if needed',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Got it'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<bool> _showPrivacyDialog() async {
-    return await showDialog<bool>(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('Image Privacy'),
-              content: const Text('Is this image private?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('No'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Yes'),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
   }
 
   @override
