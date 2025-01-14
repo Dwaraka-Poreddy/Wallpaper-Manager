@@ -5,6 +5,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../global.dart';
+import 'cache_service.dart';
 
 class WallpaperProvider {
   static final List<String> publicUrls = [
@@ -60,6 +61,8 @@ class WallpaperProvider {
       await localFile.writeAsBytes(await file.readAsBytes());
     }
     await sharedPreferences!.setString('selectedImagePath', localFile.path);
+
+    await CacheService.addImageToCacheList(localFile.path, isInPublic);
 
     return localFile.path;
   }
