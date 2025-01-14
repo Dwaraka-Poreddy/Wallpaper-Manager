@@ -44,6 +44,16 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> fetchAnotherWallpaper() async {
+    setState(() {
+      isLoading = true;
+    });
+    await WallpaperProvider.getWallpaperUrl(isInPublic);
+    setState(() {
+      isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,6 +67,11 @@ class _HomeScreenState extends State<HomeScreen> {
           : SingleChildScrollView(
               child: Column(
                 children: [
+                  TextButton.icon(
+                    onPressed: fetchAnotherWallpaper,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text("Fetch Another Wallpaper"),
+                  ),
                   const Text("Selected Image"),
                   WallpaperDisplay(
                     isInPublic: isInPublic,
