@@ -4,6 +4,21 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 class CacheService {
+  static Future<bool> imageExistsInCache(String imagePath) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final cacheFile = File('${directory.path}/cached_images.json');
+
+    if (!cacheFile.existsSync()) {
+      return false;
+    }
+
+    final content = await cacheFile.readAsString();
+    final cacheData = jsonDecode(content);
+
+    return cacheData['public'].contains(imagePath) ||
+        cacheData['private'].contains(imagePath);
+  }
+
   static Future<void> addImageToCacheList(
     String imagePath,
     bool isInPublic,
