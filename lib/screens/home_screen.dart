@@ -5,7 +5,6 @@ import '../services/biometric_auth_service.dart';
 import '../services/wallpaper_provider.dart';
 import '../services/wallpaper_service.dart';
 import '../widgets/wallpaper_widget.dart';
-import 'image_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -107,17 +106,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: const Text("Clear this Wallpaper")),
                   const SizedBox(
                     height: 10,
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ImageListScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text("View Image Lists"),
                   ),
                   ElevatedButton(
                     onPressed: () {
