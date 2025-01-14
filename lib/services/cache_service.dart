@@ -42,6 +42,46 @@ class CacheService {
     await cacheFile.writeAsString(jsonEncode(cacheData));
   }
 
+  static Future<void> updateImagePrivacy(
+      String imagePath, bool isPublic) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final cacheFile = File('${directory.path}/cached_images.json');
+
+    if (!cacheFile.existsSync()) {
+      return;
+    }
+
+    final content = await cacheFile.readAsString();
+    final cacheData = jsonDecode(content);
+
+    if (isPublic) {
+      cacheData['private'].remove(imagePath);
+      cacheData['public'].add(imagePath);
+    } else {
+      cacheData['public'].remove(imagePath);
+      cacheData['private'].add(imagePath);
+    }
+
+    await cacheFile.writeAsString(jsonEncode(cacheData));
+  }
+
+  static Future<void> removeImageFromCacheList(String imagePath) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final cacheFile = File('${directory.path}/cached_images.json');
+
+    if (!cacheFile.existsSync()) {
+      return;
+    }
+
+    final content = await cacheFile.readAsString();
+    final cacheData = jsonDecode(content);
+
+    cacheData['public'].remove(imagePath);
+    cacheData['private'].remove(imagePath);
+
+    await cacheFile.writeAsString(jsonEncode(cacheData));
+  }
+
   static Future<Map<String, List<String>>> getCachedImagesList() async {
     final directory = await getApplicationDocumentsDirectory();
     final cacheFile = File('${directory.path}/cached_images.json');

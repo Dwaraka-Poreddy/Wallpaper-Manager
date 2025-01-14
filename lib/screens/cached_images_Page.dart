@@ -55,6 +55,30 @@ class _CachedImagesPageState extends State<CachedImagesPage> {
     }
   }
 
+  Future<void> _togglePrivacy(String imagePath, bool isPublic) async {
+    final confirm = await Dialogs.showConfirmationDialog(
+      context,
+      'Change Privacy',
+      'Are you sure you want to make this image ${isPublic ? 'public' : 'private'}?',
+    );
+    if (confirm) {
+      await CacheService.updateImagePrivacy(imagePath, isPublic);
+      await _fetchAndSetCachedImagesList();
+    }
+  }
+
+  Future<void> _removeImage(String imagePath) async {
+    final confirm = await Dialogs.showConfirmationDialog(
+      context,
+      'Remove Image',
+      'Are you sure you want to remove this image?',
+    );
+    if (confirm) {
+      await CacheService.removeImageFromCacheList(imagePath);
+      await _fetchAndSetCachedImagesList();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -99,12 +123,41 @@ class _CachedImagesPageState extends State<CachedImagesPage> {
     return SingleChildScrollView(
       child: Column(
         children: imagePaths.map((imagePath) {
+          final isPublic =
+              cachedImagesList['public']?.contains(imagePath) ?? false;
           return Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Image.file(
-              File(imagePath),
-              fit: BoxFit.cover,
-              width: double.infinity,
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Column(
+                children: [
+                  ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(8.0)),
+                    child: Image.file(
+                      File(imagePath),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => _togglePrivacy(imagePath, !isPublic),
+                        child: Text(isPublic ? 'Make Private' : 'Make Public'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => _removeImage(imagePath),
+                        child: const Text('Remove'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         }).toList(),
