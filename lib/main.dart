@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallpaper_manager/screens/home_screen.dart';
 import 'package:wallpaper_manager/services/wallpaper_auto_refresh_service.dart';
@@ -8,8 +9,12 @@ import 'global.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   sharedPreferences = await SharedPreferences.getInstance();
-  runApp(const MyApp());
-  WallpaperAutoRefreshService(); // Initialize the auto-refresh service
+  runApp(
+    ChangeNotifierProvider<WallpaperAutoRefreshService>(
+      create: (context) => WallpaperAutoRefreshService(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
