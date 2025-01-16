@@ -24,6 +24,7 @@ class WallpaperAutoRefreshService extends ChangeNotifier {
 
   void _startAutoFetch() {
     _timer = Timer.periodic(const Duration(seconds: 30), (timer) async {
+      print("Updating wallpaper...");
       isLoading = true;
       isInPublic = await WallpaperProvider.isInPublic();
       await WallpaperService.setWallpaper(isInPublic);

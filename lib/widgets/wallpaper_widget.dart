@@ -30,6 +30,7 @@ class _WallpaperDisplayState extends State<WallpaperDisplay> {
     return StreamBuilder<void>(
       stream: Provider.of<WallpaperAutoRefreshService>(context).updates,
       builder: (context, snapshot) {
+        print("Updating wallpaper... IN WIDGET");
         return FutureBuilder<String>(
           future: getSelectedImage(),
           builder: (context, snapshot) {

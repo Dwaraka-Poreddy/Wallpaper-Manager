@@ -31,9 +31,14 @@ class WallpaperProvider {
       throw Exception('No images available in the cache.');
     }
 
-    final imagePath = imagesList![random.nextInt(imagesList.length)];
+    String? lastImagePath = sharedPreferences!.getString('selectedImagePath');
+    String newImagePath;
 
-    final localFile = File(imagePath);
+    do {
+      newImagePath = imagesList![random.nextInt(imagesList.length)];
+    } while (newImagePath == lastImagePath && imagesList.length > 1);
+
+    final localFile = File(newImagePath);
 
     if (!localFile.existsSync()) {
       throw Exception('Cached image file does not exist.');
