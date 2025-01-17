@@ -137,7 +137,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   if (_autoRefresh)
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 4.0,
+                      ),
                       child: Row(
                         children: [
                           Image.asset(
@@ -146,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             height: 25,
                           ),
                           const SizedBox(
-                            width: 10,
+                            width: 8,
                           ),
                           Text(
                             'Interval (mins)',
@@ -208,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           height: 25,
                         ),
                         const SizedBox(
-                          width: 10,
+                          width: 8,
                         ),
                         const Text('Public Mode'),
                       ],
@@ -261,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   height: 25,
                                 ),
                                 const SizedBox(
-                                  width: 10,
+                                  width: 8,
                                 ),
                                 Text(
                                   "View Cached Images",
@@ -276,7 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(
-                    height: 10,
+                    height: 8,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
