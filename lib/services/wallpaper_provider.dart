@@ -1,14 +1,11 @@
 import 'dart:io';
 import 'dart:math';
 
+import '../common/constants.dart';
 import '../global.dart';
 import 'cache_service.dart';
 
 class WallpaperProvider {
-  // Remove static URL lists
-  // static final List<String> publicUrls = [...];
-  // static final List<String> privateUrls = [...];
-
   static Future<bool> isInPublic() async {
     return sharedPreferences!.getBool('isInPublic') ?? false;
   }
@@ -31,7 +28,9 @@ class WallpaperProvider {
       throw Exception('No images available in the cache.');
     }
 
-    String? lastImagePath = sharedPreferences!.getString('selectedImagePath');
+    String? lastImagePath = sharedPreferences!.getString(
+      SharedPreferenceKeys.selectedImagePath,
+    );
     String newImagePath;
 
     do {
@@ -44,7 +43,10 @@ class WallpaperProvider {
       throw Exception('Cached image file does not exist.');
     }
 
-    await sharedPreferences!.setString('selectedImagePath', localFile.path);
+    await sharedPreferences!.setString(
+      SharedPreferenceKeys.selectedImagePath,
+      localFile.path,
+    );
 
     return localFile.path;
   }

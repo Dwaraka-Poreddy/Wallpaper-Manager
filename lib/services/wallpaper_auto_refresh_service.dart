@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wallpaper_manager/services/wallpaper_provider.dart';
 import 'package:wallpaper_manager/services/wallpaper_service.dart';
 
 import '../common/constants.dart';
+import '../global.dart';
 
 class WallpaperAutoRefreshService extends ChangeNotifier {
   Timer? _timer;
@@ -28,11 +28,12 @@ class WallpaperAutoRefreshService extends ChangeNotifier {
   }
 
   Future<void> _loadPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    _autoRefresh =
-        prefs.getBool(SharedPreferenceKeys.shouldAutoRefreshWallpaper) ?? true;
+    _autoRefresh = sharedPreferences!
+            .getBool(SharedPreferenceKeys.shouldAutoRefreshWallpaper) ??
+        true;
     _refreshInterval =
-        prefs.getDouble(SharedPreferenceKeys.refreshInterval) ?? 5.0;
+        sharedPreferences!.getDouble(SharedPreferenceKeys.refreshInterval) ??
+            5.0;
     if (_autoRefresh) {
       _startAutoFetch();
     }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../common/constants.dart';
+import '../global.dart';
 import '../services/biometric_auth_service.dart';
 import '../services/wallpaper_provider.dart';
 import '../services/wallpaper_service.dart';
@@ -42,31 +42,39 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _autoRefresh =
-          prefs.getBool(SharedPreferenceKeys.shouldAutoRefreshWallpaper) ??
-              true;
+      _autoRefresh = sharedPreferences!
+              .getBool(SharedPreferenceKeys.shouldAutoRefreshWallpaper) ??
+          true;
       _refreshInterval =
-          prefs.getDouble(SharedPreferenceKeys.refreshInterval) ?? 5.0;
+          sharedPreferences!.getDouble(SharedPreferenceKeys.refreshInterval) ??
+              5.0;
       _intervalController.text = _refreshInterval.toString();
     });
   }
 
   Future<void> _toggleAutoRefresh(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
     setState(() {
       _autoRefresh = value;
     });
-    await prefs.setBool(SharedPreferenceKeys.shouldAutoRefreshWallpaper, value);
+    await sharedPreferences!.setBool(
+      SharedPreferenceKeys.shouldAutoRefreshWallpaper,
+      value,
+    );
   }
 
   Future<void> _updateRefreshInterval(String value) async {
-    final prefs = await SharedPreferences.getInstance();
     setState(() {
       _refreshInterval = double.tryParse(value) ?? 5.0;
+      _intervalController.text = _refreshInterval.toString();
+      if (!_intervalController.text.contains('.')) {
+        _intervalController.text += '.0';
+      }
     });
-    await prefs.setDouble('refreshInterval', _refreshInterval);
+    await sharedPreferences!.setDouble(
+      SharedPreferenceKeys.refreshInterval,
+      _refreshInterval,
+    );
   }
 
   Future<void> setWallpaper() async {

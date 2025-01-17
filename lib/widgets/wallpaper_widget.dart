@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../common/constants.dart';
 import '../global.dart';
 import '../services/wallpaper_auto_refresh_service.dart';
 import '../services/wallpaper_provider.dart';
@@ -20,8 +21,10 @@ class _WallpaperDisplayState extends State<WallpaperDisplay> {
   @override
   Widget build(BuildContext context) {
     getSelectedImage() async {
-      if (sharedPreferences!.containsKey('selectedImagePath')) {
-        return sharedPreferences!.getString('selectedImagePath')!;
+      if (sharedPreferences!
+          .containsKey(SharedPreferenceKeys.selectedImagePath)) {
+        return sharedPreferences!
+            .getString(SharedPreferenceKeys.selectedImagePath)!;
       } else {
         return await WallpaperProvider.getWallpaperUrl(widget.isInPublic);
       }
