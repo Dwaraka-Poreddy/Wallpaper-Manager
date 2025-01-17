@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../services/biometric_auth_service.dart';
 import '../services/cache_service.dart';
 import '../services/wallpaper_service.dart';
 import '../widgets/dialogs.dart';
@@ -17,14 +18,36 @@ class CachedImagesPage extends StatefulWidget {
   _CachedImagesPageState createState() => _CachedImagesPageState();
 }
 
-class _CachedImagesPageState extends State<CachedImagesPage> {
+class _CachedImagesPageState extends State<CachedImagesPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   Map<String, List<String>> cachedImagesList = {'public': [], 'private': []};
   bool _isLoading = false;
+  bool _isAuthenticated = false;
+  final BiometricAuthService _authService = BiometricAuthService();
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_handleTabChange);
     _fetchAndSetCachedImagesList();
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_handleTabChange);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _handleTabChange() async {
+    if (_tabController.index == 1 && !_isAuthenticated) {
+      await _authenticateUser();
+      if (!_isAuthenticated) {
+        _tabController.animateTo(0);
+      }
+    }
   }
 
   Future<void> _fetchAndSetCachedImagesList() async {
@@ -220,44 +243,77 @@ class _CachedImagesPageState extends State<CachedImagesPage> {
     });
   }
 
+  Future<void> _authenticateUser() async {
+    final isAuthenticated = await _authService.authenticateUser();
+    setState(() {
+      _isAuthenticated = isAuthenticated;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Cached Images'),
-          actions: [
-            IconButton(
-              icon: Image.asset(
-                'assets/images/add_image_link.png',
-                fit: BoxFit.contain,
-                height: 25,
-              ),
-              onPressed: _addImageUrl,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Cached Images'),
+        actions: [
+          IconButton(
+            icon: Image.asset(
+              'assets/images/add_image_link.png',
+              fit: BoxFit.contain,
+              height: 25,
             ),
-            IconButton(
-              icon: Image.asset(
-                'assets/images/add_image.png',
-                fit: BoxFit.contain,
-                height: 25,
-              ),
-              onPressed: _addImage,
-            ),
-          ],
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Public'),
-              Tab(text: 'Private'),
-            ],
+            onPressed: _addImageUrl,
           ),
-        ),
-        body: TabBarView(
-          children: [
-            _buildImageList(cachedImagesList['public'] ?? []),
-            _buildImageList(cachedImagesList['private'] ?? []),
+          IconButton(
+            icon: Image.asset(
+              'assets/images/add_image.png',
+              fit: BoxFit.contain,
+              height: 25,
+            ),
+            onPressed: _addImage,
+          ),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Public'),
+            Tab(text: 'Private'),
           ],
+          onTap: (index) async {
+            if (index == 1 && !_isAuthenticated) {
+              await _authenticateUser();
+              if (!_isAuthenticated) {
+                _tabController.animateTo(0);
+              }
+            }
+          },
         ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildImageList(cachedImagesList['public'] ?? []),
+          _isAuthenticated
+              ? _buildImageList(cachedImagesList['private'] ?? [])
+              : Center(
+                  child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Please authenticate to view private images.'),
+                    const SizedBox(height: 16.0),
+                    SizedBox(
+                      width: 200,
+                      height: 60,
+                      child: ElevatedButton.icon(
+                        onPressed: _authenticateUser,
+                        icon: const Icon(Icons.fingerprint, size: 30),
+                        label: const Text('Authenticate',
+                            style: TextStyle(fontSize: 18)),
+                      ),
+                    ),
+                  ],
+                )),
+        ],
       ),
     );
   }
