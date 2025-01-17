@@ -26,8 +26,10 @@ class Dialogs {
     BuildContext context,
     String title,
     String content,
+    bool? barrierDismissible,
   ) async {
     return await showDialog<bool>(
+          barrierDismissible: barrierDismissible ?? true,
           context: context,
           builder: (context) {
             return AlertDialog(
@@ -47,5 +49,26 @@ class Dialogs {
           },
         ) ??
         false;
+  }
+
+  static Future<void> showErrorDialog(
+      BuildContext context, String title, String message) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
