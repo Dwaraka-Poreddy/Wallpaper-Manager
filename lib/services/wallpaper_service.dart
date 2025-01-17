@@ -9,7 +9,8 @@ import 'wallpaper_provider.dart';
 class WallpaperService {
   static Future<bool> setWallpaper(bool isInPublic) async {
     try {
-      String urlOrPath = sharedPreferences!.getString('selectedImagePath')!;
+      String urlOrPath =
+          sharedPreferences!.getString('selectedImagePath') ?? "";
 
       File file = File(urlOrPath);
 

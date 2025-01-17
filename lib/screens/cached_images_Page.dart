@@ -79,6 +79,10 @@ class _CachedImagesPageState extends State<CachedImagesPage> {
     );
     if (confirm) {
       await CacheService.removeImageFromCacheList(imagePath);
+      final file = File(imagePath);
+      if (await file.exists()) {
+        await file.delete();
+      }
       await _fetchAndSetCachedImagesList();
     }
   }
