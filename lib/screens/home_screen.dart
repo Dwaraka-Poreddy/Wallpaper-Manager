@@ -37,8 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       isLoading = true;
     });
-    bool result = await WallpaperService.setWallpaper(isInPublic);
-    print(result);
+    bool result = await WallpaperService.setWallpaper(isInPublic: isInPublic);
     setState(() {
       isLoading = false;
     });

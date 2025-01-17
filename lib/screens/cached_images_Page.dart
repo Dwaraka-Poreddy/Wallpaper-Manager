@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../services/cache_service.dart';
+import '../services/wallpaper_service.dart';
 import '../widgets/dialogs.dart';
 
 class CachedImagesPage extends StatefulWidget {
@@ -195,45 +196,80 @@ class _CachedImagesPageState extends State<CachedImagesPage> {
     }
   }
 
+  Future<void> _setAsWallPaper(String imagePath, bool isPublic) async {
+    setState(() {
+      _isLoading = true;
+    });
+    final confirm = await Dialogs.showConfirmationDialog(
+      context,
+      'Set as Wallpaper',
+      'Are you sure to set this image as wallpaper?',
+      false,
+    );
+    if (confirm) {
+      await WallpaperService.setWallpaper(
+        isInPublic: isPublic,
+        filePath: imagePath,
+      );
+      setState(() {
+        _isLoading = false;
+      });
+    }
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Cached Images'),
-          actions: [
-            IconButton(
-              icon: Image.asset(
-                'assets/images/add_image_link.png',
-                fit: BoxFit.contain,
-                height: 25,
+    return Stack(
+      children: [
+        DefaultTabController(
+          length: 2,
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Cached Images'),
+              actions: [
+                IconButton(
+                  icon: Image.asset(
+                    'assets/images/add_image_link.png',
+                    fit: BoxFit.contain,
+                    height: 25,
+                  ),
+                  onPressed: _addImageUrl,
+                ),
+                IconButton(
+                  icon: Image.asset(
+                    'assets/images/add_image.png',
+                    fit: BoxFit.contain,
+                    height: 25,
+                  ),
+                  onPressed: _addImage,
+                ),
+              ],
+              bottom: const TabBar(
+                tabs: [
+                  Tab(text: 'Public'),
+                  Tab(text: 'Private'),
+                ],
               ),
-              onPressed: _addImageUrl,
             ),
-            IconButton(
-              icon: Image.asset(
-                'assets/images/add_image.png',
-                fit: BoxFit.contain,
-                height: 25,
-              ),
-              onPressed: _addImage,
+            body: TabBarView(
+              children: [
+                _buildImageList(cachedImagesList['public'] ?? []),
+                _buildImageList(cachedImagesList['private'] ?? []),
+              ],
             ),
-          ],
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Public'),
-              Tab(text: 'Private'),
-            ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            _buildImageList(cachedImagesList['public'] ?? []),
-            _buildImageList(cachedImagesList['private'] ?? []),
-          ],
-        ),
-      ),
+        if (_isLoading)
+          Container(
+            color: const Color.fromARGB(137, 255, 254, 254),
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+      ],
     );
   }
 
@@ -270,13 +306,32 @@ class _CachedImagesPageState extends State<CachedImagesPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      ElevatedButton(
+                      IconButton(
+                        color: Colors.red,
+                        icon: Image.asset(
+                          isPublic
+                              ? 'assets/images/private.png'
+                              : 'assets/images/public.png',
+                          fit: BoxFit.contain,
+                          height: 25,
+                        ),
                         onPressed: () => _togglePrivacy(imagePath, !isPublic),
-                        child: Text(isPublic ? 'Make Private' : 'Make Public'),
                       ),
-                      ElevatedButton(
+                      IconButton(
+                        icon: Image.asset(
+                          'assets/images/set_wallpaper.png',
+                          fit: BoxFit.contain,
+                          height: 25,
+                        ),
+                        onPressed: () => _setAsWallPaper(imagePath, isPublic),
+                      ),
+                      IconButton(
+                        icon: Image.asset(
+                          'assets/images/delete.png',
+                          fit: BoxFit.contain,
+                          height: 25,
+                        ),
                         onPressed: () => _removeImage(imagePath),
-                        child: const Text('Remove'),
                       ),
                     ],
                   ),

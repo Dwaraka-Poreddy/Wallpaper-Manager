@@ -2,17 +2,25 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_wallpaper_manager/flutter_wallpaper_manager.dart';
+import 'package:wallpaper_manager/utils/string_extensions.dart';
 
 import '../global.dart';
 import 'wallpaper_provider.dart';
 
 class WallpaperService {
-  static Future<bool> setWallpaper(bool isInPublic) async {
+  static Future<bool> setWallpaper({
+    String? filePath,
+    required bool isInPublic,
+  }) async {
     try {
-      String urlOrPath =
-          sharedPreferences!.getString('selectedImagePath') ?? "";
-
-      File file = File(urlOrPath);
+      late File file;
+      if (filePath.isNotNullOrEmpty()) {
+        file = File(filePath!);
+      } else {
+        String urlOrPath =
+            sharedPreferences!.getString('selectedImagePath') ?? "";
+        file = File(urlOrPath);
+      }
 
       int location = WallpaperManager.BOTH_SCREEN;
 

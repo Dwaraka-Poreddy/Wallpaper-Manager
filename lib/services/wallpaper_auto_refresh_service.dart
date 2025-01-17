@@ -27,7 +27,7 @@ class WallpaperAutoRefreshService extends ChangeNotifier {
       print("Updating wallpaper...");
       isLoading = true;
       isInPublic = await WallpaperProvider.isInPublic();
-      await WallpaperService.setWallpaper(isInPublic);
+      await WallpaperService.setWallpaper(isInPublic: isInPublic);
       await WallpaperProvider.getWallpaperUrl(isInPublic);
       _updateController.add(null); // Notify listeners
       isLoading = false;
