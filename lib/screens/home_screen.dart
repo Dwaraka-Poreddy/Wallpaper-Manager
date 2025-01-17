@@ -111,7 +111,19 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 children: [
                   SwitchListTile(
-                    title: const Text('Auto Refresh Wallpaper'),
+                    title: Row(
+                      children: [
+                        Image.asset(
+                          'assets/images/refresh.png',
+                          fit: BoxFit.contain,
+                          height: 25,
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        const Text('Auto Refresh Wallpaper'),
+                      ],
+                    ),
                     value: _autoRefresh,
                     onChanged: _toggleAutoRefresh,
                   ),
@@ -120,14 +132,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.all(16.0),
                       child: Row(
                         children: [
+                          Image.asset(
+                            'assets/images/hourglass.png',
+                            fit: BoxFit.contain,
+                            height: 25,
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
                           Text(
-                            'Refresh Interval (mins)',
+                            'Interval (mins)',
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           const Spacer(),
                           if (_isEditing)
                             SizedBox(
-                              width: 60,
+                              width: 50,
                               child: TextField(
                                 controller: _intervalController,
                                 keyboardType:
@@ -136,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 decoration: const InputDecoration(
                                   isDense: true,
                                 ),
+                                textAlign: TextAlign.center,
                                 onSubmitted: _updateRefreshInterval,
                               ),
                             )
@@ -171,7 +192,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   SwitchListTile(
-                    title: const Text('Public Mode'),
+                    title: Row(
+                      children: [
+                        Image.asset(
+                          'assets/images/public.png',
+                          fit: BoxFit.contain,
+                          height: 25,
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        const Text('Public Mode'),
+                      ],
+                    ),
                     value: isInPublic,
                     onChanged: isSwitchDisabled
                         ? null
@@ -212,9 +245,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              "View Cached Images",
-                              style: Theme.of(context).textTheme.bodyLarge,
+                            Row(
+                              children: [
+                                Image.asset(
+                                  'assets/images/gallery.png',
+                                  fit: BoxFit.contain,
+                                  height: 25,
+                                ),
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                                Text(
+                                  "View Cached Images",
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                              ],
                             ),
                             const Icon(Icons.chevron_right),
                           ],
