@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:wallpaper_manager/screens/cached_images_Page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../common/constants.dart';
 import '../services/biometric_auth_service.dart';
 import '../services/wallpaper_provider.dart';
 import '../services/wallpaper_service.dart';
+import '../widgets/dialogs.dart';
 import '../widgets/wallpaper_widget.dart';
+import 'cached_images_Page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,13 +20,18 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isLoading = false;
   bool isInPublic = false;
   bool isSwitchDisabled = false;
+  bool _autoRefresh = true;
+  double _refreshInterval = 5.0;
+  bool _isEditing = false;
 
+  final TextEditingController _intervalController = TextEditingController();
   final BiometricAuthService _authService = BiometricAuthService();
 
   @override
   void initState() {
     super.initState();
     _initializePublicMode();
+    _loadPreferences();
   }
 
   Future<void> _initializePublicMode() async {
@@ -33,14 +41,50 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _autoRefresh =
+          prefs.getBool(SharedPreferenceKeys.shouldAutoRefreshWallpaper) ??
+              true;
+      _refreshInterval =
+          prefs.getDouble(SharedPreferenceKeys.refreshInterval) ?? 5.0;
+      _intervalController.text = _refreshInterval.toString();
+    });
+  }
+
+  Future<void> _toggleAutoRefresh(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _autoRefresh = value;
+    });
+    await prefs.setBool(SharedPreferenceKeys.shouldAutoRefreshWallpaper, value);
+  }
+
+  Future<void> _updateRefreshInterval(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _refreshInterval = double.tryParse(value) ?? 5.0;
+    });
+    await prefs.setDouble('refreshInterval', _refreshInterval);
+  }
+
   Future<void> setWallpaper() async {
-    setState(() {
-      isLoading = true;
-    });
-    bool result = await WallpaperService.setWallpaper(isInPublic: isInPublic);
-    setState(() {
-      isLoading = false;
-    });
+    final confirm = await Dialogs.showConfirmationDialog(
+      context,
+      'Set as Wallpaper',
+      'Are you sure to set this image as wallpaper?',
+      false,
+    );
+    if (confirm) {
+      setState(() {
+        isLoading = true;
+      });
+      await WallpaperService.setWallpaper(isInPublic: isInPublic);
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> fetchAnotherWallpaper() async {
@@ -66,18 +110,66 @@ class _HomeScreenState extends State<HomeScreen> {
           : SingleChildScrollView(
               child: Column(
                 children: [
-                  TextButton.icon(
-                    onPressed: fetchAnotherWallpaper,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text("Fetch Another Wallpaper"),
+                  SwitchListTile(
+                    title: const Text('Auto Refresh Wallpaper'),
+                    value: _autoRefresh,
+                    onChanged: _toggleAutoRefresh,
                   ),
-                  const Text("Selected Image"),
-                  WallpaperDisplay(
-                    isInPublic: isInPublic,
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  if (_autoRefresh)
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Refresh Interval (mins)',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                          const Spacer(),
+                          if (_isEditing)
+                            SizedBox(
+                              width: 60,
+                              child: TextField(
+                                controller: _intervalController,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                        decimal: true),
+                                decoration: const InputDecoration(
+                                  isDense: true,
+                                ),
+                                onSubmitted: _updateRefreshInterval,
+                              ),
+                            )
+                          else
+                            Text(
+                              _intervalController.text,
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          IconButton(
+                            icon: Icon(_isEditing ? Icons.check : Icons.edit),
+                            onPressed: () {
+                              if (_isEditing) {
+                                _updateRefreshInterval(
+                                    _intervalController.text);
+                              }
+                              setState(() {
+                                _isEditing = !_isEditing;
+                              });
+                            },
+                          ),
+                          if (_isEditing)
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () {
+                                setState(() {
+                                  _isEditing = false;
+                                  _intervalController.text =
+                                      _refreshInterval.toString();
+                                });
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
                   SwitchListTile(
                     title: const Text('Public Mode'),
                     value: isInPublic,
@@ -104,33 +196,72 @@ class _HomeScreenState extends State<HomeScreen> {
                             });
                           },
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  ElevatedButton(
-                      onPressed: () => {setWallpaper()},
-                      child: const Text("Set this Wallpaper")),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  ElevatedButton(
-                      onPressed: () async {
-                        await WallpaperService.clearWallpaper();
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CachedImagesPage(),
+                          ),
+                        );
                       },
-                      child: const Text("Clear this Wallpaper")),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "View Cached Images",
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                            const Icon(Icons.chevron_right),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(
                     height: 10,
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CachedImagesPage(),
-                        ),
-                      );
-                    },
-                    child: const Text("View Cached Images"),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: Column(
+                        children: [
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(8.0)),
+                            child: WallpaperDisplay(
+                              isInPublic: isInPublic,
+                            ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              TextButton.icon(
+                                onPressed: fetchAnotherWallpaper,
+                                icon: const Icon(Icons.refresh),
+                                label: const Text("Fetch Another Image"),
+                              ),
+                              IconButton(
+                                icon: Image.asset(
+                                  'assets/images/set_wallpaper.png',
+                                  fit: BoxFit.contain,
+                                  height: 25,
+                                ),
+                                onPressed: () => setWallpaper(),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),

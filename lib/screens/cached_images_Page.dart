@@ -222,54 +222,43 @@ class _CachedImagesPageState extends State<CachedImagesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        DefaultTabController(
-          length: 2,
-          child: Scaffold(
-            appBar: AppBar(
-              title: const Text('Cached Images'),
-              actions: [
-                IconButton(
-                  icon: Image.asset(
-                    'assets/images/add_image_link.png',
-                    fit: BoxFit.contain,
-                    height: 25,
-                  ),
-                  onPressed: _addImageUrl,
-                ),
-                IconButton(
-                  icon: Image.asset(
-                    'assets/images/add_image.png',
-                    fit: BoxFit.contain,
-                    height: 25,
-                  ),
-                  onPressed: _addImage,
-                ),
-              ],
-              bottom: const TabBar(
-                tabs: [
-                  Tab(text: 'Public'),
-                  Tab(text: 'Private'),
-                ],
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Cached Images'),
+          actions: [
+            IconButton(
+              icon: Image.asset(
+                'assets/images/add_image_link.png',
+                fit: BoxFit.contain,
+                height: 25,
               ),
+              onPressed: _addImageUrl,
             ),
-            body: TabBarView(
-              children: [
-                _buildImageList(cachedImagesList['public'] ?? []),
-                _buildImageList(cachedImagesList['private'] ?? []),
-              ],
+            IconButton(
+              icon: Image.asset(
+                'assets/images/add_image.png',
+                fit: BoxFit.contain,
+                height: 25,
+              ),
+              onPressed: _addImage,
             ),
+          ],
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Public'),
+              Tab(text: 'Private'),
+            ],
           ),
         ),
-        if (_isLoading)
-          Container(
-            color: const Color.fromARGB(137, 255, 254, 254),
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
-      ],
+        body: TabBarView(
+          children: [
+            _buildImageList(cachedImagesList['public'] ?? []),
+            _buildImageList(cachedImagesList['private'] ?? []),
+          ],
+        ),
+      ),
     );
   }
 
