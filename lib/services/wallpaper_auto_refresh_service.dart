@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:wallpaper_manager/services/wallpaper_provider.dart';
 import 'package:wallpaper_manager/services/wallpaper_service.dart';
+import 'package:workmanager/workmanager.dart'
+    show Constraints, Workmanager, NetworkType;
 
 import '../common/constants.dart';
 import '../global.dart';
@@ -19,6 +21,30 @@ class WallpaperAutoRefreshService extends ChangeNotifier {
   WallpaperAutoRefreshService() {
     _initializePublicMode();
     _loadPreferences();
+    startBackgroundUpdates();
+  }
+
+  static const String taskName = 'wallpaperRefreshTask';
+
+  Future<void> executeTask() async {
+    await _checkAndUpdateWallpaperIfNeeded();
+  }
+
+  void startBackgroundUpdates() async {
+    print("Called startBackgroundUpdates");
+    double refreshInterval =
+        sharedPreferences!.getDouble(SharedPreferenceKeys.refreshInterval) ??
+            5.0;
+    Workmanager().registerPeriodicTask(
+      taskName,
+      taskName,
+      frequency: Duration(minutes: refreshInterval.toInt()),
+      constraints: Constraints(
+        requiresBatteryNotLow: true,
+        requiresCharging: false,
+        networkType: NetworkType.not_required,
+      ),
+    );
   }
 
   Stream<void> get updates => _updateController.stream;
@@ -35,23 +61,27 @@ class WallpaperAutoRefreshService extends ChangeNotifier {
         sharedPreferences!.getDouble(SharedPreferenceKeys.refreshInterval) ??
             5.0;
     if (_autoRefresh) {
-      _startAutoFetch();
+      startAutoSetWallpaper();
     }
   }
 
-  void _startAutoFetch() {
+  void startAutoSetWallpaper() {
     _timer = Timer.periodic(Duration(minutes: _refreshInterval.toInt()),
         (timer) async {
-      if (_autoRefresh) {
-        print("Updating wallpaper...");
-        isLoading = true;
-        isInPublic = await WallpaperProvider.isInPublic();
-        await WallpaperService.setWallpaper(isInPublic: isInPublic);
-        await WallpaperProvider.getWallpaperUrl(isInPublic);
-        _updateController.add(null); // Notify listeners
-        isLoading = false;
-      }
+      await _checkAndUpdateWallpaperIfNeeded();
     });
+  }
+
+  Future<void> _checkAndUpdateWallpaperIfNeeded() async {
+    if (_autoRefresh) {
+      print("Updating wallpaper...");
+      isLoading = true;
+      isInPublic = await WallpaperProvider.isInPublic();
+      await WallpaperService.setWallpaper(isInPublic: isInPublic);
+      await WallpaperProvider.getWallpaperUrl(isInPublic);
+      _updateController.add(null); // Notify listeners
+      isLoading = false;
+    }
   }
 
   @override

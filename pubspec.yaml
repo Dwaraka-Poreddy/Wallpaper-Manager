@@ -39,6 +39,7 @@ dependencies:
   local_auth: ^2.3.0
   provider: ^6.0.1
   shared_preferences: ^2.0.10
+  workmanager: ^0.5.2
 
 dev_dependencies:
   flutter_lints: ^3.0.0
